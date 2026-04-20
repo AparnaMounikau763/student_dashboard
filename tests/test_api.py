@@ -1,7 +1,5 @@
 import uuid
 
-from app.routes import students
-
 def test_crud(client):
     unique_id = str(uuid.uuid4())[:8]
 
@@ -16,14 +14,19 @@ def test_crud(client):
     })
     assert res.status_code == 201
 
+    # Duplicate POST 
+    res = client.post('/students', json={
+        "username": username,
+        "email": email,
+        "password": "123"
+    })
+    assert res.status_code == 400
+
     # GET
     res = client.get('/students')
     assert res.status_code == 200
 
-    # Get latest user ID dynamically
-    response_data = res.get_json()
-    students = response_data["data"]
-    
+    students = res.get_json()["data"]
     student_id = students[-1]["id"]
 
     # PUT
@@ -32,6 +35,22 @@ def test_crud(client):
     })
     assert res.status_code == 200
 
+    # PUT duplicate 
+    client.post('/students', json={
+        "username": "dup_user",
+        "email": "dup@mail.com",
+        "password": "123"
+    })
+
+    res = client.put(f'/students/{student_id}', json={
+        "username": "dup_user"
+    })
+    assert res.status_code == 400
+
     # DELETE
     res = client.delete(f'/students/{student_id}')
     assert res.status_code == 200
+
+    # DELETE non-existing 
+    res = client.delete('/students/99999')
+    assert res.status_code == 404

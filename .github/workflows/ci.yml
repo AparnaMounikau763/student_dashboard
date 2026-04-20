@@ -45,10 +45,12 @@ jobs:
       # 4. Clean Old Coverage
       # -----------------------
       - name: Clean old coverage
-        run: rm -f .coverage
+        run: |
+          rm -f .coverage
+          rm -rf htmlcov
 
       # -----------------------
-      # 5. Run Tests Separately
+      # 5. Run Tests (Stage-wise)
       # -----------------------
 
       - name: Run Auth Tests
@@ -64,18 +66,18 @@ jobs:
         run: pytest -v tests/test_performance.py --cov=app --cov-append
 
       # -----------------------
-      # 6. Final Coverage Report
-            # -----------------------
-
+      # 6. Generate Final Coverage
+      # -----------------------
       - name: Generate Coverage Report
-        run: pytest --cov=app --cov-report=term-missing
+        run: |
+          coverage report -m
+          coverage html
 
       # -----------------------
-      # 7. Upload Coverage File
+      # 7. Upload HTML Coverage
       # -----------------------
-
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: .coverage
+          name: html-coverage-report
+          path: htmlcov/
